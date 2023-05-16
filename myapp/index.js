@@ -33,13 +33,14 @@ app.get('/date/:fromDate/:toDate', (req, res) => {
   res.send(list);
 })
 
-app.put('/user/:userId/:email', (req, res) => {
+app.put('/user', (req, res) => {
   let users = data["users"];
   let posts = data["posts"];
   let changed = false;
+  var { email, user_id } = req.body;
   users.forEach(element => {
-    if (element["id"] == req.params.userId) {
-      element["email"] = req.params.email;
+    if (element["id"] == user_id) {
+      element["email"] = email;
       changed = true;
     }
   })
@@ -58,13 +59,14 @@ app.put('/user/:userId/:email', (req, res) => {
   }
 });
 
-app.post('/post/:userId/:title/:body', (req, res) => {
+app.post('/post', (req, res) => {
   let posts = data["posts"];
   let users = data["users"];
-  let post = {"id" : (posts.length + 1).toString()};
-  post["title"] = req.params.title;
-  post["body"] = req.params.body;
-  post["user_id"] = req.params.userId;
+  let post = {"id" : (posts.length + 1)};
+  let {user_id, title, body} = req.body;
+  post["user_id"] = user_id;
+  post["title"] = title;
+  post["body"] = body;
   post["last_update"] = new Date();
   posts.push(post);
 
