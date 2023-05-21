@@ -37,9 +37,94 @@ app.get('/excel', (req, res) => {
   workbook.calcProperties.fullCalcOnLoad = true;
   workbook.views = [{
       x: 0, y: 0, width: 10000, height: 20000,
+
       firstSheet: 0, activeTab: 1, visibility: 'visible'
     }]
   const sheet = workbook.addWorksheet('My Sheet');
+
+  var ind = 2;
+  var nastavnici = [];
+  var statusi = [];
+  var predavanja = [];
+  var seminari = [];
+  var vjezbe = [];
+  var normaPredavanja = [];
+  var normaSeminari = [];
+  var normaVjezbe = [];
+
+  var databook = new exceljs.Workbook();
+  databook.xlsx.readFile("data.xlsx")
+    .then(function(ind, nastavnici, statusi, predavanja, seminari, vjezbe, normaPredavanja, normaSeminari, normaVjezbe) {
+      var datasheet = databook.getWorksheet('List1');
+
+      while (true) { // get data
+        var nas = "D" + ind.toString();
+        var stat = "E" + ind.toString();
+        var pred = "N" + ind.toString();
+        var sem = "O" + ind.toString();
+        var vj = "P" + ind.toString();
+        var nPred = "" + ind.toString();
+        var nSem = "O" + ind.toString();
+        var nVj = "P" + ind.toString();
+        if (datasheet.getCell(nas).value == "") {
+          ind -= 2;
+          break;
+        }
+        nastavnici.push(datasheet.getCell(nas).value);
+        statusi.push(datasheet.getCell(stat).value);
+        predavanja.push(datasheet.getCell(pred).value);
+        seminari.push(datasheet.getCell(sem).value);
+        vjezbe.push(datasheet.getCell(vj).value);
+        normaPredavanja.push(datasheet.getCell(nPred).value);
+        normaSeminari.push(datasheet.getCell(nSem).value);
+        normaVjezbe.push(datasheet.getCell(nVj).value);
+        ind++;
+      }
+        
+    });
+
+  var len = ind;
+  var ind = 0;
+  var cells = 'A' + (18 + len).toString() + ":C" + (18 + len).toString();
+  sheet.mergeCells(cells);
+  for (i = 0; i < 14; i++) { // A17:N25 border + first row numbers + data
+    for (j = 17; j < 19 + len; j++) {
+      if (j == (18 + len)) {
+        var str = letters[i] + j.toString();
+        sheet.getCell(str).border = { top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}};
+      }
+      else if (i < 13) {
+        var str = letters[i] + j.toString();
+        sheet.getCell(str).border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'}};
+        if (str[0] == 'B' && ind <= len) {
+          sheet.getCell(str).value = nastavnici[ind];
+        }
+        else if (str[0] == 'D' && ind <= len) {
+          sheet.getCell(str).value = statusi[ind];
+        }
+        else if (str[0] == 'E' && ind <= len) {
+          sheet.getCell(str).value = predavanja[ind];
+        }
+        else if (str[0] == 'F' && ind <= len) {
+          sheet.getCell(str).value = seminari[ind];
+        }
+        else if (str[0] == 'G' && ind <= len) {
+          sheet.getCell(str).value = vjezbe[ind];
+        }
+      }
+      else if (i == 13) {
+        var str = letters[i] + j.toString();
+        sheet.getCell(str).border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'medium'}};
+      }
+      if (i == 0 && j < 18 + len) {
+        var str = letters[i] + j.toString();
+        sheet.getCell(str).value = j - 16;
+        sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
+      }
+    }
+    ind++;
+  }
+
   sheet.getColumn('A').width = 7;
   sheet.getColumn('B').width = 18.5;
   sheet.getColumn('C').width = 22;
@@ -69,7 +154,12 @@ app.get('/excel', (req, res) => {
   sheet.mergeCells('J15:J16');
   sheet.mergeCells('K15:M15');
   sheet.mergeCells('N15:N16');
-  sheet.mergeCells('A25:C25');
+
+  const image1 = workbook.addImage({
+    filename: 'Logo.png',
+    extension: 'png',
+  });
+  sheet.addImage(image1, 'A1:B4');
 
   for (i = 0; i < 8; i++) { // A12:H12 color and border
     var str = letters[i] + "12";
@@ -93,27 +183,7 @@ app.get('/excel', (req, res) => {
     var str = letters[i] + "13";
     sheet.getCell(str).border = { top: {style:'medium'}, left: {style:'thin'}, bottom: {style:'medium'}, right: {style:'thin'}};
   }
-  for (i = 0; i < 14; i++) { // A17:N25 border + first row numbers
-    for (j = 17; j < 26; j++) {
-      if (j == 25) {
-        var str = letters[i] + j.toString();
-        sheet.getCell(str).border = { top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}};
-      }
-      else if (i < 13) {
-        var str = letters[i] + j.toString();
-        sheet.getCell(str).border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'}};
-      }
-      else if (i == 13) {
-        var str = letters[i] + j.toString();
-        sheet.getCell(str).border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'medium'}};
-      }
-      if (i == 0 && j < 25) {
-        var str = letters[i] + j.toString();
-        sheet.getCell(str).value = j - 16;
-        sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
-      }
-    }
-  }
+
   sheet.getCell('A13').alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   sheet.getCell('H13').alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   sheet.getCell('H13').border = { top: {style:'medium'}, left: {style:'thin'}, bottom: {style:'medium'}, right: {style:'medium'}};
