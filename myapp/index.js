@@ -25,7 +25,7 @@ const letters = {
 
 async function write(workbook, filename) {
   await workbook.xlsx.writeFile(filename);
-};
+}
 
 app.get('/excel', (req, res) => {
   const workbook = new exceljs.Workbook();
@@ -44,54 +44,73 @@ app.get('/excel', (req, res) => {
 
   var ind = 2;
   var nastavnici = [];
+  var zvanja = [];
   var statusi = [];
   var predavanja = [];
   var seminari = [];
   var vjezbe = [];
-  var normaPredavanja = [];
-  var normaSeminari = [];
-  var normaVjezbe = [];
+  var pSum = 0;
+  var sSum = 0;
+  var vSum = 0;
 
-  var databook = new exceljs.Workbook();
-  databook.xlsx.readFile("data.xlsx")
-    .then(function(ind, nastavnici, statusi, predavanja, seminari, vjezbe, normaPredavanja, normaSeminari, normaVjezbe) {
-      var datasheet = databook.getWorksheet('List1');
+  data["profesori"].forEach(element => {
+    nastavnici.push(element["NastavnikSuradnikNaziv"]);
+    zvanja.push(element["ZvanjeNaziv"]);
+    statusi.push(element["NazivNastavnikStatus"]);
+    predavanja.push(element["PlaniraniSatiPredavanja"]);
+    seminari.push(element["PlaniraniSatiSeminari"]);
+    vjezbe.push(element["PlaniraniSatiVjezbe"]);
+    pSum += element["PlaniraniSatiPredavanja"];
+    sSum += element["PlaniraniSatiSeminari"];
+    vSum += element["PlaniraniSatiVjezbe"];
+    ind++;
+  });
 
-      while (true) { // get data
-        var nas = "D" + ind.toString();
-        var stat = "E" + ind.toString();
-        var pred = "N" + ind.toString();
-        var sem = "O" + ind.toString();
-        var vj = "P" + ind.toString();
-        var nPred = "" + ind.toString();
-        var nSem = "O" + ind.toString();
-        var nVj = "P" + ind.toString();
-        if (datasheet.getCell(nas).value == "") {
-          ind -= 2;
-          break;
-        }
-        nastavnici.push(datasheet.getCell(nas).value);
-        statusi.push(datasheet.getCell(stat).value);
-        predavanja.push(datasheet.getCell(pred).value);
-        seminari.push(datasheet.getCell(sem).value);
-        vjezbe.push(datasheet.getCell(vj).value);
-        normaPredavanja.push(datasheet.getCell(nPred).value);
-        normaSeminari.push(datasheet.getCell(nSem).value);
-        normaVjezbe.push(datasheet.getCell(nVj).value);
-        ind++;
-      }
-        
-    });
+  //while (true) { // get xlsx data
+  //  var nas = "D" + ind.toString();
+  //  var stat = "E" + ind.toString();
+  //  var pred = "N" + ind.toString();
+  //  var sem = "O" + ind.toString();
+  //  var vj = "P" + ind.toString();
+  //  var nPred = "" + ind.toString();
+  //  var nSem = "O" + ind.toString();
+  //  var nVj = "P" + ind.toString();
+  //  if (datasheet.getCell(nas).value == "") {
+  //    ind -= 2;
+  //    break;
+  //  }
+  //  nastavnici.push(datasheet.getCell(nas).value);
+  //  statusi.push(datasheet.getCell(stat).value);
+  //  predavanja.push(datasheet.getCell(pred).value);
+  //  seminari.push(datasheet.getCell(sem).value);
+  //  vjezbe.push(datasheet.getCell(vj).value);
+  //  normaPredavanja.push(datasheet.getCell(nPred).value);
+  //  normaSeminari.push(datasheet.getCell(nSem).value);
+  //  normaVjezbe.push(datasheet.getCell(nVj).value);
+  //  ind++;
+  //}
 
-  var len = ind;
+  var len = ind - 2;
   var ind = 0;
-  var cells = 'A' + (18 + len).toString() + ":C" + (18 + len).toString();
+
+  var cells = 'A' + (17 + len).toString() + ":C" + (17 + len).toString();
   sheet.mergeCells(cells);
+  sheet.getCell("A" + (17 + len).toString()).value = "UKUPNO";
+  
   for (i = 0; i < 14; i++) { // A17:N25 border + first row numbers + data
-    for (j = 17; j < 19 + len; j++) {
-      if (j == (18 + len)) {
+    for (j = 17; j < 18 + len; j++) {
+      if (j == (17 + len)) {
         var str = letters[i] + j.toString();
         sheet.getCell(str).border = { top: {style:'medium'}, left: {style:'medium'}, bottom: {style:'medium'}, right: {style:'medium'}};
+        if (i > 3 && i < 7) {
+          let form = "SUM(" + letters[i] + "17:" + letters[i] + (16 + len).toString() + ")"; 
+          sheet.getCell(str).value = {formula: form};
+          sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
+        }
+        if (i > 9) {
+          let form = "SUM(" + letters[i] + "17:" + letters[i] + (16 + len).toString() + ")"; 
+          sheet.getCell(str).value = {formula: form};
+        }
       }
       else if (i < 13) {
         var str = letters[i] + j.toString();
@@ -99,31 +118,61 @@ app.get('/excel', (req, res) => {
         if (str[0] == 'B' && ind <= len) {
           sheet.getCell(str).value = nastavnici[ind];
         }
+        else if (str[0] == 'C' && ind <= len) {
+          sheet.getCell(str).value = zvanja[ind];
+        }
         else if (str[0] == 'D' && ind <= len) {
           sheet.getCell(str).value = statusi[ind];
         }
         else if (str[0] == 'E' && ind <= len) {
           sheet.getCell(str).value = predavanja[ind];
+          sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
         }
         else if (str[0] == 'F' && ind <= len) {
           sheet.getCell(str).value = seminari[ind];
+          sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
         }
         else if (str[0] == 'G' && ind <= len) {
           sheet.getCell(str).value = vjezbe[ind];
+          sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
+        }
+        else if (str[0] == 'K' && ind <= len) {
+          let form = "E" + j.toString() + "*" + "H" + j.toString(); 
+          sheet.getCell(str).value = {formula: form};
+        }
+        else if (str[0] == 'L' && ind <= len) {
+          let form = "F" + j.toString() + "*" + "I" + j.toString(); 
+          sheet.getCell(str).value = {formula: form};
+        }
+        else if (str[0] == 'M' && ind <= len) {
+          let form = "G" + j.toString() + "*" + "J" + j.toString(); 
+          sheet.getCell(str).value = {formula: form};
         }
       }
       else if (i == 13) {
         var str = letters[i] + j.toString();
         sheet.getCell(str).border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'medium'}};
+        let form = "SUM(K" + j.toString() + "," + "M" + j.toString() + ")"; 
+        sheet.getCell(str).value = {formula: form};
       }
-      if (i == 0 && j < 18 + len) {
+      if (i == 0 && j < 17 + len) {
         var str = letters[i] + j.toString();
         sheet.getCell(str).value = j - 16;
         sheet.getCell(str).alignment = { horizontal: 'center', wrapText: true };
       }
+      ind++;
     }
-    ind++;
+    ind = 0;
   }
+
+  sheet.getCell("A" + (20 + len).toString()).value = "Prodekanica za nastavu i studentska pitanja";
+  sheet.getCell("A" + (21 + len).toString()).value = "Prof. dr. sc. Ime Prezime";
+
+  sheet.getCell("A" + (26 + len).toString()).value = "Prodekan za financije i upravljanje";
+  sheet.getCell("A" + (27 + len).toString()).value = "Prof. dr. sc. Ime Prezime";
+
+  sheet.getCell("J" + (26 + len).toString()).value = "Dekan";
+  sheet.getCell("J" + (27 + len).toString()).value = "Prof. dr. sc. Ime Prezime";
 
   sheet.getColumn('A').width = 7;
   sheet.getColumn('B').width = 18.5;
@@ -188,12 +237,7 @@ app.get('/excel', (req, res) => {
   sheet.getCell('H13').alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   sheet.getCell('H13').border = { top: {style:'medium'}, left: {style:'thin'}, bottom: {style:'medium'}, right: {style:'medium'}};
 
-  sheet.getCell('A5').value = {
-    'richText': [
-      {'font': {'size': 11, 'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Predmet: '},
-      {'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'naziv predmeta sa sifrom'}
-    ]
-  };
+  sheet.getCell('A5').value = ("Predmet: " + data.profesori[0].PredmetNaziv);
   sheet.getCell('A6').value = { 'richText': [ {'font': {'bold': true,'size': 14,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'NALOG ZA ISPLATU'}]};
   sheet.getCell('A6').alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
   sheet.getCell('A6').border = { bottom: {style:'medium', color: {argb:'FFFFFFFF'}}};
@@ -206,22 +250,13 @@ app.get('/excel', (req, res) => {
   sheet.getCell('F12').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'početak turnusa'}]};
   sheet.getCell('G12').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'kraj turnusa'}]};
   sheet.getCell('H12').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'br sati predviđen programom'}]};
-  sheet.getCell('A13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Katedra'}]};
-  sheet.getCell('C13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Studiji'}]};
-  sheet.getCell('D13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': '2022./23.'}]};
-  sheet.getCell('E13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'npr. 1'}]};
+  sheet.getCell('A13').value =  data.profesori[0].Katedra;
+  sheet.getCell('C13').value =  data.profesori[0].Studij;
+  sheet.getCell('D13').value =  data.profesori[0].SkolskaGodinaNaziv;
+  sheet.getCell('E13').value =  data.profesori[0].PkSkolskaGodina;
   sheet.getCell('F13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'datum'}]};
   sheet.getCell('G13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'datum'}]};
-  sheet.getCell('H13').value = {
-    'richText': [
-      {'font': {'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'P: '},
-      {'font': {'size': 11,'color': {'argb': 'FFFF0000'}, 'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'XY '},
-      {'font': {'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'S: '},
-      {'font': {'size': 11,'color': {'argb': 'FFFF0000'}, 'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'XY '},
-      {'font': {'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'V: '},
-      {'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'XY '}
-    ]
-  };
+  sheet.getCell('H13').value = 'P: ' + pSum.toString() + ' S: ' + sSum.toString() + ' V: ' + vSum.toString();
   sheet.getCell('A15').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Redni broj'}]};
   sheet.getCell('B15').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Nastavnik/Suradnik'}]};
   sheet.getCell('C15').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Zvanje'}]};
