@@ -96,6 +96,7 @@ app.get('/excel', (req, res) => {
   var cells = 'A' + (17 + len).toString() + ":C" + (17 + len).toString();
   sheet.mergeCells(cells);
   sheet.getCell("A" + (17 + len).toString()).value = "UKUPNO";
+  sheet.getCell("A" + (17 + len).toString()).alignment = { horizontal: 'center', wrapText: true };
   
   for (i = 0; i < 14; i++) { // A17:N25 border + first row numbers + data
     for (j = 17; j < 18 + len; j++) {
@@ -254,8 +255,8 @@ app.get('/excel', (req, res) => {
   sheet.getCell('C13').value =  data.profesori[0].Studij;
   sheet.getCell('D13').value =  data.profesori[0].SkolskaGodinaNaziv;
   sheet.getCell('E13').value =  data.profesori[0].PkSkolskaGodina;
-  sheet.getCell('F13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'datum'}]};
-  sheet.getCell('G13').value = { 'richText': [{'font': {'size': 11,'color': {'argb': 'FFFF0000'},'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'datum'}]};
+  sheet.getCell('F13').value = "datum"
+  sheet.getCell('G13').value = "datum"
   sheet.getCell('H13').value = 'P: ' + pSum.toString() + ' S: ' + sSum.toString() + ' V: ' + vSum.toString();
   sheet.getCell('A15').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Redni broj'}]};
   sheet.getCell('B15').value = { 'richText': [{'font': {'bold': true,'size': 11,'name': 'Calibri','family': 2,'scheme': 'minor'},'text': 'Nastavnik/Suradnik'}]};
